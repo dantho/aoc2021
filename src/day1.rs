@@ -11,21 +11,30 @@ extern crate regex;
 // *** Generator(s) ***
 // ********************/
 #[aoc_generator(day1)]
-pub fn gen1(input: &str) -> String {
-    input.to_string()
+pub fn gen1(input: &str) -> Vec<u16> {
+    input.lines()
+        .map(|line|line.parse().unwrap())
+        .collect()
 }
 
 // *********************
 // *** Part1 & Part2 ***
 // *********************
 #[aoc(day1, part1)]
-pub fn part1(input: &String) -> usize {
-    input
+pub fn part1(input: &Vec<u16>) -> usize {
+    input.iter().zip(input.iter().skip(1))
+        .filter(|(a,b)| b > a)
+        .count()
 }
 
 #[aoc(day1, part2)]
-pub fn part2(input: &String) -> usize {
-    0
+pub fn part2(input: &Vec<u16>) -> usize {
+    let input = input.iter()
+        .zip(input.iter().skip(1))
+        .zip(input.iter().skip(2))
+        .map(|((a,b),c)|a+b+c)
+        .collect();
+    part1(&input)
 }
 
 // *************
