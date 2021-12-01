@@ -5,25 +5,26 @@
 /// https://docs.rs/regex/1.4.2/regex/
 /// https://docs.rs/regex/1.4.2/regex/#syntax 
 extern crate regex;
-use self::regex::{Captures, Regex};
+// use self::regex::{Captures, Regex};
 
 // ********************
 // *** Generator(s) ***
 // ********************/
 #[aoc_generator(day1)]
-pub fn gen1(input: &str) -> () {
+pub fn gen1(input: &str) -> String {
+    input.to_string()
 }
 
 // *********************
 // *** Part1 & Part2 ***
 // *********************
 #[aoc(day1, part1)]
-pub fn part1(input: &()) -> usize {
-    0
+pub fn part1(input: &String) -> usize {
+    input
 }
 
 #[aoc(day1, part2)]
-pub fn part2(input: &()) -> usize {
+pub fn part2(input: &String) -> usize {
     0
 }
 
