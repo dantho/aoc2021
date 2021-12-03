@@ -8,11 +8,11 @@ bench = false
 
 [dependencies]
 rust-crypto = "0.2.36"
-aoc-runner = "0.3.0"
+aoc-runner = "0.3"
 aoc-runner-derive = "0.3.0"
-crossterm = "0.18.2"
+crossterm = "0.22.1"
 regex = "1"
 lazy_static = "1.4"
 num-integer = "0.1"
 modinverse = "0.1"
-ring-algorithm = "0.2"
+ring-algorithm = "0.4"
