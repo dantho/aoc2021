@@ -48,23 +48,34 @@ pub fn part1(input: &[Vec<u32>]) -> u32 {
 #[aoc(day3, part2)]
 pub fn part2(input: &[Vec<u32>]) -> u32 {
     let len = input.len() as u32;
-    let sum_of_1s = input.iter()
-        .fold(vec![0;input[0].len()],|sum, v|sum.iter().zip(v.iter()).map(|(s,v)|s+v).collect());
-    let bit_criteria_value = sum_of_1s.iter().fold(0,|crit,s|crit*2+s*2/len);
-    let bitmask = (1<<input[0].len())-1;
+    let width = input[0].len() as u32;
     let binary_input: Vec<u32> = input.iter()
         .map(|v|v.iter().fold(0,|bin,bit|bin*2+bit)).collect();
-    let oxy_gen = binary_input.iter().filter(|&&n|n>bit_criteria_value).min().unwrap();
-    let c02scrub = binary_input.iter().filter(|&&n|(!n)&bitmask<bit_criteria_value).max().unwrap();
+    let sum_of_1s = input.iter()
+        .fold(vec![0;width as usize],|sum, v|sum.iter().zip(v.iter()).map(|(s,v)|s+v).collect());
+    let oxy_criteria_value = sum_of_1s.iter().fold(0,|crit,s|crit*2+s*2/len);
+    let co2_criteria_value = inv_bits(oxy_criteria_value, width);
+    // let co2_criteria_value = inv_bits(sum_of_1s.iter().fold(0,|crit,s|crit*2+(s*2-1)/len),width);
+    let oxy_gen = binary_input.iter().filter(|&&n|n>oxy_criteria_value).min().unwrap();
+    let co2scrub = binary_input.iter().filter(|&&n|n>co2_criteria_value).min().unwrap();
     println!("BinaryInput: {:?}", binary_input);
-    println!("Bit criteria value: {}", bit_criteria_value);
+    println!("Oxygen criteria value: {}", oxy_criteria_value);
+    println!("CO2 criteria value: {}", co2_criteria_value);
     println!("Oxygen generator rating: {}", oxy_gen);
-    println!("C02 scrubber rating: {}", c02scrub);
-    let ans = oxy_gen * c02scrub;
-    assert!(ans < 14405818, "Answer {} is too high", ans);
+    println!("co2 scrubber rating: {}", co2scrub);
+    let ans = oxy_gen * co2scrub;
+    if !cfg!(test) 
+    {
+        assert!(ans < 14405818, "Answer {} is too high", ans);
+        assert!(ans > 1166600, "Answer {} is too low", ans);    
+    }
     ans
 }
 
+fn inv_bits(v:u32,bitwidth:u32) -> u32 {
+    let bitmask = (1<<bitwidth)-1;
+    (!v)&bitmask
+}
 // *************
 // *** Tests ***
 // *************
@@ -94,7 +105,7 @@ mod tests {
             vec![0,1,0,1,0],
         ];
         let ans = part2(&input);
-        assert_eq!(ans, 999);
+        assert_eq!(ans, 230);
     }
 
 const EX1: &'static str =
