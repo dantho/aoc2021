@@ -1,4 +1,4 @@
-use std::collections::binary_heap;
+use std::{collections::binary_heap, panic};
 
 /// https://adventofcode.com/2021/day/3
 /// ADI: https://adventofcode.com/2020/leaderboard/private/view/380786 
@@ -51,18 +51,55 @@ pub fn part2(input: &[Vec<u32>]) -> u32 {
     let width = input[0].len() as u32;
     let binary_input: Vec<u32> = input.iter()
         .map(|v|v.iter().fold(0,|bin,bit|bin*2+bit)).collect();
-    let sum_of_1s = input.iter()
-        .fold(vec![0;width as usize],|sum, v|sum.iter().zip(v.iter()).map(|(s,v)|s+v).collect());
-    let oxy_criteria_value = sum_of_1s.iter().fold(0,|crit,s|crit*2+s*2/len);
-    let co2_criteria_value = inv_bits(oxy_criteria_value, width);
-    // let co2_criteria_value = inv_bits(sum_of_1s.iter().fold(0,|crit,s|crit*2+(s*2-1)/len),width);
-    let oxy_gen = binary_input.iter().filter(|&&n|n>oxy_criteria_value).min().unwrap();
-    let co2scrub = binary_input.iter().filter(|&&n|n>co2_criteria_value).min().unwrap();
-    println!("BinaryInput: {:?}", binary_input);
-    println!("Oxygen criteria value: {}", oxy_criteria_value);
-    println!("CO2 criteria value: {}", co2_criteria_value);
+
+    let mut diagdata = binary_input.clone();
+    if cfg!(test) {println!("remaining vals: {:?}", diagdata)};
+    for bit in 0..width {
+        let bitwgt = 1<<(width-bit-1); // msb first
+        let bitcrit = diagdata.iter().filter(|&n|n&bitwgt>0).count()*2/diagdata.len();
+        let bitcrit = match bitcrit {
+            1 => bitwgt,
+            0 => 0,
+            _ => panic!("Expected bitcrit value of 0 or 1, got {}", bitcrit),
+        };
+        diagdata = diagdata.into_iter().filter(|&n| n&bitwgt==bitcrit).collect();
+        if cfg!(test) {println!("remaining vals: {:?}", diagdata)};
+        if diagdata.len() == 1 {break};
+    };
+    let oxy_gen = if diagdata.len() == 1 {
+        diagdata[0]
+    } else {
+        panic!("Expected diagdata.len() == 1, got {}", diagdata.len())
+    };
+
+    let mut diagdata = binary_input;
+    if cfg!(test) {println!("remaining vals: {:?}", diagdata)};
+    for bit in 0..width {
+        let bitwgt = 1<<(width-bit-1); // msb first
+        let bitcrit = diagdata.iter().filter(|&n|n&bitwgt>0).count()*2/diagdata.len();
+        let bitcrit = match bitcrit {
+            0 => bitwgt,
+            1 => 0,
+            _ => panic!("Expected bitcrit value of 0 or 1, got {}", bitcrit),
+        };
+        diagdata = diagdata.into_iter().filter(|&n| n&bitwgt==bitcrit).collect();
+        let co2scrub = if diagdata.len() == 1 {
+            Some(diagdata[0])
+        } else {
+            None
+        };
+        if cfg!(test) {println!("remaining vals: {:?}", diagdata)};
+        if diagdata.len() == 1 {break};
+    };
+    let co2scrub = if diagdata.len() == 1 {
+        diagdata[0]
+    } else {
+        panic!("Expected diagdata.len() == 1, got {}", diagdata.len())
+    };
+
     println!("Oxygen generator rating: {}", oxy_gen);
-    println!("co2 scrubber rating: {}", co2scrub);
+    println!("CO2 scrubber rating: {}", co2scrub);
+
     let ans = oxy_gen * co2scrub;
     if !cfg!(test) 
     {
