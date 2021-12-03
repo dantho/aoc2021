@@ -1,6 +1,6 @@
-/// https://adventofcode.com/2020/day/N
-/// ADI: https://adventofcode.com/2020/leaderboard/private/view/380786 
-/// TER: https://adventofcode.com/2020/leaderboard/private/view/951754 
+/// https://adventofcode.com/2021/day/N
+/// ADI: https://adventofcode.com/2021/leaderboard/private/view/380786 
+/// TER: https://adventofcode.com/2021/leaderboard/private/view/951754 
 /// 
 /// https://docs.rs/regex/1.4.2/regex/
 /// https://docs.rs/regex/1.4.2/regex/#syntax 
