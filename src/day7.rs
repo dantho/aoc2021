@@ -1,4 +1,4 @@
-/// https://adventofcode.com/2021/day/N
+/// https://adventofcode.com/2021/day/7
 /// TER: https://adventofcode.com/2021/leaderboard/private/view/951754 
 /// 
 /// https://docs.rs/regex/1.4.2/regex/
@@ -9,19 +9,19 @@
 // ********************
 // *** Generator(s) ***
 // ********************/
-#[aoc_generator(dayN)]
+#[aoc_generator(day7)]
 pub fn gen1(input: &str) -> () {
 }
 
 // *********************
 // *** Part1 & Part2 ***
 // *********************
-#[aoc(dayN, part1)]
+#[aoc(day7, part1)]
 pub fn part1(input: &()) -> usize {
     0
 }
 
-#[aoc(dayN, part2)]
+#[aoc(day7, part2)]
 pub fn part2(input: &()) -> usize {
     0
 }
