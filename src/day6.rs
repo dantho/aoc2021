@@ -4,8 +4,8 @@
 /// 
 /// https://docs.rs/regex/1.4.2/regex/
 /// https://docs.rs/regex/1.4.2/regex/#syntax 
-extern crate regex;
-use self::regex::{Captures, Regex};
+// extern crate regex;
+// use self::regex::{Captures, Regex};
 
 // ********************
 // *** Generator(s) ***

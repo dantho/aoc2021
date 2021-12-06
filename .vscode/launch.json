@@ -8,15 +8,60 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(Windows) Launch",
-            "type": "cppvsdbg",
+            "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/target/debug/advent-of-code-2020.exe",
+            "name": "Debug unit tests in library 'advent-of-code-2021'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=advent-of-code-2021"
+                ],
+                "filter": {
+                    "name": "advent-of-code-2021",
+                    "kind": "lib"
+                }
+            },
             "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'advent-of-code-2021'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=advent-of-code-2021",
+                    "--package=advent-of-code-2021"
+                ],
+                "filter": {
+                    "name": "advent-of-code-2021",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'advent-of-code-2021'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=advent-of-code-2021",
+                    "--package=advent-of-code-2021"
+                ],
+                "filter": {
+                    "name": "advent-of-code-2021",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
