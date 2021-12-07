@@ -32,11 +32,14 @@ pub fn part2(input: &[usize]) -> usize {
     let max_pos = *input.iter().max().unwrap();
     let align_energy: Vec<usize> = (0..=max_pos)
         .map(|target_pos|{
-            input.iter().map(|&p|(geom(if p>target_pos {p-target_pos} else {target_pos-p}))).sum()
+            input.iter().map(|&p|
+                (geom(dist(p,target_pos)))).sum()
         }).collect();
     align_energy.into_iter().min().unwrap()
 }
-
+fn dist(p1:usize, p2:usize) -> usize {
+    if p1>p2 {p1-p2} else {p2-p1}
+}
 fn geom(dist:usize)->usize {
     (1..=dist).sum()
 }
