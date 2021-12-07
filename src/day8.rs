@@ -1,4 +1,4 @@
-/// https://adventofcode.com/2021/day/N
+/// https://adventofcode.com/2021/day/8
 /// TER: https://adventofcode.com/2021/leaderboard/private/view/951754 
 /// 
 /// https://docs.rs/regex/1.4.2/regex/
@@ -9,19 +9,19 @@
 // ********************
 // *** Generator(s) ***
 // ********************/
-#[aoc_generator(dayN)]
+#[aoc_generator(day8)]
 pub fn gen1(input: &str) -> () {
 }
 
 // *********************
 // *** Part1 & Part2 ***
 // *********************
-#[aoc(dayN, part1)]
+#[aoc(day8, part1)]
 pub fn part1(input: &()) -> usize {
     0
 }
 
-#[aoc(dayN, part2)]
+#[aoc(day8, part2)]
 pub fn part2(input: &()) -> usize {
     0
 }
@@ -34,9 +34,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_gen() {
+    fn test_gen1() {
         let g = gen1(EX1);
-        assert_eq!(g.len(), 999);
+        assert_eq!(g.len(), 10);
     }
 
     #[test]
