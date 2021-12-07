@@ -24,14 +24,8 @@ pub fn part1(input: &[usize]) -> usize {
         .map(|target_pos|{
             input.iter().map(|&p|(if p>target_pos {p-target_pos} else {target_pos-p})).sum()
         }).collect();
-    align_energy.iter().enumerate().fold((usize::MAX,usize::MAX),|(min_ndx,min_e),(ndx,&e)|{
-        if e < min_e {
-            (ndx,e)
-        } else {
-            (min_ndx,min_e)
-        }
-    }).1
-}
+        align_energy.into_iter().min().unwrap()
+    }
 
 #[aoc(day7, part2)]
 pub fn part2(input: &[usize]) -> usize {
@@ -40,13 +34,7 @@ pub fn part2(input: &[usize]) -> usize {
         .map(|target_pos|{
             input.iter().map(|&p|(geom(if p>target_pos {p-target_pos} else {target_pos-p}))).sum()
         }).collect();
-    align_energy.iter().enumerate().fold((usize::MAX,usize::MAX),|(min_ndx,min_e),(ndx,&e)|{
-        if e < min_e {
-            (ndx,e)
-        } else {
-            (min_ndx,min_e)
-        }
-    }).1
+    align_energy.into_iter().min().unwrap()
 }
 
 fn geom(dist:usize)->usize {
