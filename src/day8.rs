@@ -1,5 +1,3 @@
-use std::{vec, collections::HashMap};
-
 /// https://adventofcode.com/2021/day/8
 /// TER: https://adventofcode.com/2021/leaderboard/private/view/951754 
 /// 
@@ -30,7 +28,7 @@ pub fn part1(input: &[Vec<Vec<String>>]) -> usize {
 // &[Vec]: scrambled signal input and segment output for each of multiple 4-digit 7-segment displays
 // Vec: input, output (signals and segments, respectively)
 // Vec: digits (set of signals or segments, max of 7 representing the "8" with all segments lit)
-// Vec: signals if input, segments if output
+// String: chars are signals if input, segments if output
     let mut sig_count = [0usize;8];
     for disp in input {
         let output = &disp[1];
