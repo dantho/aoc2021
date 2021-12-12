@@ -1,10 +1,6 @@
 /// https://adventofcode.com/2021/day/11
 /// TER: https://adventofcode.com/2021/leaderboard/private/view/951754 
-/// 
-/// https://docs.rs/regex/1.4.2/regex/
-/// https://docs.rs/regex/1.4.2/regex/#syntax 
-// extern crate regex;
-// use self::regex::{Captures, Regex};
+use colored::*;
 
 // ********************
 // *** Generator(s) ***
@@ -21,7 +17,12 @@ pub fn gen1(input: &str) -> Vec<Vec<u8>> {
 pub fn part1(input: &[Vec<u8>]) -> usize {
     let mut octopi = input.to_vec();
     let mut flash_count = 0;
-    for step in 1..=100 {
+    for _ in &octopi {
+        println!("");
+    }
+    println!("");
+    println!("");
+    for _step in 1..=100 {
         take_step(&mut octopi);
         flash(&mut octopi);
         flash_count += octopi.iter().map(|v|v.iter()).flatten().filter(|&&e|e==0).count();
@@ -32,6 +33,10 @@ pub fn part1(input: &[Vec<u8>]) -> usize {
 #[aoc(day11, part2)]
 pub fn part2(input: &[Vec<u8>]) -> usize {
     let mut octopi = input.to_vec();
+    for _ in &octopi {
+        println!("");
+    }
+    println!("");
     for step in 1..=1000 {
         take_step(&mut octopi);
         flash(&mut octopi);
@@ -54,7 +59,10 @@ fn flash(octopi: &mut [Vec<u8>]) {
     for row in 0..octopi.len() {
         for col in 0..octopi[0].len() {
             let oct = &mut octopi[row][col];
-            if *oct >= 10 {flash_pt(octopi, row, col);}
+            if *oct >= 10 {
+                flash_pt(octopi, row, col);
+                print_grid(octopi);
+            }
         }
     }
 }
@@ -71,11 +79,30 @@ fn flash_pt(octopi: &mut [Vec<u8>], y: usize, x: usize) {
             if *oct > 0 {
                 *oct += 1;
             }
-            if *oct >= 10 {flash_pt(octopi, yy, xx);}
+            if *oct >= 10 {
+                flash_pt(octopi, yy, xx);
+                print_grid(octopi);
+            }
         }
     }
 }
 
+fn print_grid(octopi:&[Vec<u8>]) {
+    print!("\x1B[{}A", octopi.len()+2);
+    println!("");
+    for row in octopi {
+        for v in row {
+            print!("{}", match v {
+                0 => "0".bold().bright_white(),
+                9 => "9".red(),
+                n if *n>9 => "*".red(),
+                n => n.to_string().yellow(),
+            });
+        }
+        println!("");
+    }
+    println!("");
+}
 // *************
 // *** Tests ***
 // *************
