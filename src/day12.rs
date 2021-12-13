@@ -31,12 +31,12 @@ pub fn gen1(input: &str) -> HashMap<String, Cave> {
         let mut pair = line.split("-").to_owned();
         let name0 = pair.next().unwrap();
         let name1 = pair.next().unwrap();
-        let mut cave0 = cave_system.entry(name0.to_string()).or_insert(Cave {
+        let cave0 = cave_system.entry(name0.to_string()).or_insert(Cave {
             name: name0.to_string(),
             connections: HashSet::new(),
         });
         cave0.connections.insert(name1.to_string());
-        let mut cave1 = cave_system.entry(name1.to_string()).or_insert(Cave {
+        let cave1 = cave_system.entry(name1.to_string()).or_insert(Cave {
             name: name1.to_string(),
             connections: HashSet::new(),
         });

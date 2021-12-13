@@ -1,22 +1,22 @@
-/// https://adventofcode.com/2021/day/N
+/// https://adventofcode.com/2021/day/14
 /// TER: https://adventofcode.com/2021/leaderboard/private/view/951754 
 
 // ********************
 // *** Generator(s) ***
 // ********************/
-#[aoc_generator(dayN)]
+#[aoc_generator(day14)]
 pub fn gen1(input: &str) -> () {
 }
 
 // *********************
 // *** Part1 & Part2 ***
 // *********************
-#[aoc(dayN, part1)]
+#[aoc(day14, part1)]
 pub fn part1(input: &()) -> usize {
     0
 }
 
-#[aoc(dayN, part2)]
+#[aoc(day14, part2)]
 pub fn part2(input: &()) -> usize {
     0
 }
