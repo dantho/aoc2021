@@ -44,12 +44,12 @@ pub fn part2(input: &[Vec<u32>]) -> u32 {
     let mut bigger = Vec::new();
     for y in 0..height {
         bigger.push(Vec::new());
-        for xx in 0..5 {
+        for _xx in 0..5 {
             bigger[y].append(&mut input[y].clone());
         }
     }
     // copy in y dir
-    for yy in 1..5 {
+    for _yy in 1..5 {
         for y in 0..height {
             bigger.push(bigger[y].clone());
         }
@@ -99,9 +99,8 @@ pub fn part2(input: &[Vec<u32>]) -> u32 {
         }
     }
     // iterate/scrub for upward/leftward paths
-    let mut not_found = false;
     loop {
-        not_found = true; // Optimism
+        let mut not_found = true; // Optimism
         for y in 0..height {
             for x in 0..width {
                 let path_so_far = explored[y][x];
@@ -120,7 +119,8 @@ pub fn part2(input: &[Vec<u32>]) -> u32 {
     }
 
     let ans = explored[explored.len()-1][explored[0].len()-1];
-    if !cfg!(test) {assert!(ans < 2186);}  // BUT 2185 is too low!!  :O
+    // if !cfg!(test) {assert!(ans>2185);}  // 2186 too high BUT 2185 too low!! :O
+    // if !cfg!(test) {assert!(ans<2186);}  // 2186 too high BUT 2185 too low!! :O
     ans
 }
 

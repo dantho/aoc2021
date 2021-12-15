@@ -85,12 +85,36 @@ pub fn part2(input: &(String, Vec<(String,char)>)) -> usize {
         existing_pair.push(e2);
         *present.entry(existing_pair).or_default() += 1;
     });
-    let mut cummulative = present.clone();
-    for _ in 0..10 {
-        
+
+    for i in 1..=40 {
+        if cfg!(test) && i == 10 {
+            println!("{:?}", &present)
+        }
+        // accumulate chars
+        // find next row
+        let mut next_row: HashMap<String,usize> = HashMap::new();
+        for (pair, pair_cnt) in present {
+            let new_pairs = pair_expander.get(&pair).unwrap();
+            let p1 = new_pairs[0].clone();
+            let p2 = new_pairs[1].clone();
+            *next_row.entry(p1).or_default() += pair_cnt;
+            *next_row.entry(p2).or_default() += pair_cnt;
+        }
+        present = next_row;
     }
-    0
-    // Don't forget to add in Last
+    // Let's tally them up by counting 1st char in each pair
+    let mut element_counts:HashMap<char,usize> = HashMap::new();
+    for (pair, pair_cnt) in present {
+        *element_counts.entry(pair.chars().nth(0).unwrap()).or_default() += pair_cnt;
+    }
+    // Don't forget to add in last char
+    *element_counts.entry(last).or_default() += 1;
+
+    let max_cnt = element_counts.values().max().unwrap();
+    let min_cnt = element_counts.values().min().unwrap();
+    println!("{}", max_cnt);
+    println!("{}", min_cnt);
+    max_cnt-min_cnt
 }
 
 // *************
