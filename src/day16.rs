@@ -22,7 +22,7 @@ pub fn part1(input: &Packet) -> usize {
 pub fn part2(input: &Packet) -> u64 {
     let ans = input.eval();
     if !cfg!(test) {
-        assert!(!ans == 27588);
+        assert!(ans != 27588);
         assert!(ans > 27588);
     }
     ans
@@ -65,18 +65,23 @@ impl Packet {
     pub fn eval(&self) -> u64 {
         match self.typeid {
             Literal => self.value.unwrap(),
-            Sum => self.packets[0].eval()+self.packets[1].eval(),
-            Product => self.packets[0].eval()*self.packets[1].eval(),
+            Sum => self.packets[0].eval()
+                  +self.packets[1].eval(),
+            Product => self.packets[0].eval()
+                      *self.packets[1].eval(),
             Minimum => self.packets[0].eval()
-                .min(self.packets[1].eval()
-                .min(self.packets[2].eval())),
+                  .min(self.packets[1].eval()
+                  .min(self.packets[2].eval())),
             Maximum => self.packets[0].eval()
-                .max(self.packets[1].eval()
-                .max(self.packets[2].eval())),
-            GreaterThan => if self.packets[0].eval() > self.packets[1].eval() {1} else {0},
-            LessThan => if self.packets[0].eval() < self.packets[1].eval() {1} else {0},
-            EqualTo => if self.packets[0].eval() == self.packets[1].eval() {1} else {0},
-            OpUnknown => panic!("OpUnknown encountered!"),                }
+                  .max(self.packets[1].eval()
+                  .max(self.packets[2].eval())),
+            GreaterThan => if self.packets[0].eval()
+                            > self.packets[1].eval() {1} else {0},
+            LessThan => if self.packets[0].eval()
+                         < self.packets[1].eval() {1} else {0},
+            EqualTo => if self.packets[0].eval()
+                       == self.packets[1].eval() {1} else {0},
+            OpUnknown => panic!("Opcode 'OpUnknown' encountered!"),                }
     }
     pub fn is_literal(&self) -> bool {
         self.typeid == Literal && self.value.is_some()
@@ -132,21 +137,21 @@ impl Packet {
                 match length_type_id {
                     0 => {
                         let total_bit_length = Self::left_shift(&mut v, 15);
-                        let mut remainder_bits: u64 = total_bit_length;
+                        let word_cnt = total_bit_length / 64;
+                        let remainder_bit_length = total_bit_length % 64;
                         let mut vv = Vec::new();
-                        if remainder_bits >= 64 {
+                        if word_cnt > 0 {
+                            println!("bits: {} words: {} remainder: {}", total_bit_length, word_cnt, remainder_bit_length);
                             v.reverse();
-                            loop {
+                            for _ in 0..word_cnt {
                                 vv.push(v.pop().unwrap());
-                                remainder_bits -= 64;
-                                if remainder_bits < 64 {break;}
                             }
                             v.reverse();
                         }
-                        if remainder_bits > 0 {
-                            let packet_bits = Self::left_shift(&mut v, remainder_bits);
-                            let packet_bits = packet_bits<<(64-remainder_bits); // MSB justified
-                            vv.push(packet_bits);
+                        if remainder_bit_length > 0 {
+                            let remainder_bits = Self::left_shift(&mut v, remainder_bit_length);
+                            let remainder_bits = remainder_bits<<(64-remainder_bit_length); // MSB justified
+                            vv.push(remainder_bits);
                         }
                         loop {
                             packets.push(Self::parse_u64s(&mut vv));
@@ -167,9 +172,8 @@ impl Packet {
                 // clean up remainder of input vector
                 loop {
                     if v.is_empty() {break;}
-                    if v[v.len()-1] == 0 {
-                        v.pop();
-                    } else {break;}
+                    if v[v.len()-1] > 0 {break;}
+                    v.pop(); // Discard trailing word full of zeros
                 }
                 Packet {version, typeid, value: None, packets}
             }
