@@ -19,21 +19,38 @@ pub fn part1(input: &Packet) -> usize {
 }
 
 #[aoc(day16, part2)]
-pub fn part2(input: &Packet) -> usize {
-    0
+pub fn part2(input: &Packet) -> u64 {
+    let ans = input.eval();
+    if !cfg!(test) {
+        assert!(!ans == 27588);
+        assert!(ans > 27588);
+    }
+    ans
 }
 
 #[derive(Eq,PartialEq,Copy,Clone,Debug)]
 pub enum Operator {
     Literal = 4,
-    Op1 = 6,
+    Sum = 0,
+    Product = 1,
+    Minimum = 2,
+    Maximum = 3,
+    GreaterThan = 5,
+    LessThan = 6,
+    EqualTo = 7,
     OpUnknown = isize::MAX,
 }
 impl Operator {
     pub fn parse_u8(v: u8) -> Self {
         match v {
+            0 => Sum,
+            1 => Product,
+            2 => Minimum,
+            3 => Maximum,
             4 => Literal,
-            6 => Op1,
+            5 => GreaterThan,
+            6 => LessThan,
+            7 => EqualTo,
             _ => OpUnknown,
         }
     }
@@ -44,16 +61,23 @@ pub struct Packet {
     value: Option<u64>,
     packets: Vec<Packet>,
 }
-impl<'a> Packet {
-    pub fn flatten(&'a self) -> Vec<&'a Self> {
-        let mut vecp = vec![self];
-        for p in &self.packets {
-            vecp.extend_from_slice(&p.flatten());
-        }
-        vecp
-    }
-}
 impl Packet {
+    pub fn eval(&self) -> u64 {
+        match self.typeid {
+            Literal => self.value.unwrap(),
+            Sum => self.packets[0].eval()+self.packets[1].eval(),
+            Product => self.packets[0].eval()*self.packets[1].eval(),
+            Minimum => self.packets[0].eval()
+                .min(self.packets[1].eval()
+                .min(self.packets[2].eval())),
+            Maximum => self.packets[0].eval()
+                .max(self.packets[1].eval()
+                .max(self.packets[2].eval())),
+            GreaterThan => if self.packets[0].eval() > self.packets[1].eval() {1} else {0},
+            LessThan => if self.packets[0].eval() < self.packets[1].eval() {1} else {0},
+            EqualTo => if self.packets[0].eval() == self.packets[1].eval() {1} else {0},
+            OpUnknown => panic!("OpUnknown encountered!"),                }
+    }
     pub fn is_literal(&self) -> bool {
         self.typeid == Literal && self.value.is_some()
     }
@@ -95,10 +119,10 @@ impl Packet {
                 let mut val = 0;
                 loop {
                     val *= 16;
-                    let isLast = Self::left_shift(&mut v, 1) == 0;
+                    let is_last = Self::left_shift(&mut v, 1) == 0;
                     let nibble = Self::left_shift(&mut v, 4);
                     val += nibble;
-                    if isLast {break;}
+                    if is_last {break;}
                 };
                 Packet {version, typeid, value: Some(val), packets: Vec::new()}
             },
@@ -108,9 +132,22 @@ impl Packet {
                 match length_type_id {
                     0 => {
                         let total_bit_length = Self::left_shift(&mut v, 15);
-                        let packet_bits = Self::left_shift(&mut v, total_bit_length);
-                        let packet_bits = packet_bits<<(64-total_bit_length); // MSB justified
-                        let mut vv = vec![packet_bits];
+                        let mut remainder_bits: u64 = total_bit_length;
+                        let mut vv = Vec::new();
+                        if remainder_bits >= 64 {
+                            v.reverse();
+                            loop {
+                                vv.push(v.pop().unwrap());
+                                remainder_bits -= 64;
+                                if remainder_bits < 64 {break;}
+                            }
+                            v.reverse();
+                        }
+                        if remainder_bits > 0 {
+                            let packet_bits = Self::left_shift(&mut v, remainder_bits);
+                            let packet_bits = packet_bits<<(64-remainder_bits); // MSB justified
+                            vv.push(packet_bits);
+                        }
                         loop {
                             packets.push(Self::parse_u64s(&mut vv));
                             if vv.is_empty() {break;}
@@ -151,6 +188,15 @@ impl Packet {
         });
         v.reverse();
         shifted_out_bits
+    }
+}
+impl<'a> Packet {
+    pub fn flatten(&'a self) -> Vec<&'a Self> {
+        let mut vecp = vec![self];
+        for p in &self.packets {
+            vecp.extend_from_slice(&p.flatten());
+        }
+        vecp
     }
 }
 
@@ -206,12 +252,61 @@ mod tests {
         let p1 = part1(&g);
         assert_eq!(p1, 23);
     }
-    // #[test]
-    // fn test_ex7_part1() {
-    //     let g = gen1(EX7);
-    //     let p1 = part1(&g);
-    //     assert_eq!(p1, 31);
-    // }
+    #[test]
+    fn test_ex7_part1() {
+        let g = gen1(EX7);
+        let p1 = part1(&g);
+        assert_eq!(p1, 31);
+    }
+    // Part2
+    #[test]
+    fn test_sum_part2() {
+        let g = gen1("C200B40A82");
+        let p2 = part2(&g);
+        assert_eq!(p2, 3);
+    }
+    #[test]
+    fn test_product_part2() {
+        let g = gen1("04005AC33890");
+        let p2 = part2(&g);
+        assert_eq!(p2, 54);
+    }
+    #[test]
+    fn test_min_part2() {
+        let g = gen1("880086C3E88112");
+        let p2 = part2(&g);
+        assert_eq!(p2, 7);
+    }
+    #[test]
+    fn test_max_part2() {
+        let g = gen1("CE00C43D881120");
+        let p2 = part2(&g);
+        assert_eq!(p2, 9);
+    }
+    #[test]
+    fn test_lessthan_part2() {
+        let g = gen1("D8005AC2A8F0");
+        let p2 = part2(&g);
+        assert_eq!(p2, 1);
+    }
+    #[test]
+    fn test_greaterthan_part2() {
+        let g = gen1("F600BC2D8F");
+        let p2 = part2(&g);
+        assert_eq!(p2, 0);
+    }
+    #[test]
+    fn test_equalto_part2() {
+        let g = gen1("9C005AC2F8F0");
+        let p2 = part2(&g);
+        assert_eq!(p2, 0);
+    }
+    #[test]
+    fn test_expr_part2() {
+        let g = gen1("9C0141080250320F1802104A08");
+        let p2 = part2(&g);
+        assert_eq!(p2, 1);
+    }
 
 // 110100101111111000101000
 // VVVTTTAAAAABBBBBCCCCC
