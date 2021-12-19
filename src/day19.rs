@@ -41,8 +41,8 @@ pub fn part1(input: &[Vec<Coord>]) -> usize {
 
     // loop until all scanners are processed (see 'break' condition at bottom of loop)
     loop {
-        let mut scanners = input.into_iter().enumerate().filter(|(i,_)| !processed_scanners[*i]);
-        let scanner_rots = scanners
+        let scanner_rots = input.into_iter().enumerate()
+        .filter(|(i,_)| !processed_scanners[*i])
         .map(|(scanner_id,target_scanner)| {
             let diff_matrix = beacons_relative_to_0.iter()
             .map(|ref_beacon|{
@@ -69,21 +69,86 @@ pub fn part1(input: &[Vec<Coord>]) -> usize {
         if cfg!(test) { println!("Scanner Rotations: {:?}", scanner_rots);}
         for (scanner_id, rot, diff, cnt) in scanner_rots {
             if cnt >= 12 {
+                if cfg!(test) {println!("Processing Scanner ID# {} of 0 to {}", scanner_id, processed_scanners.len()-1);}
                 for beacon in &input[scanner_id] {
                     beacons_relative_to_0.insert(beacon.rotate(rot)-diff);
+                    if cfg!(test) {println!("beacons HashSet size: {}", beacons_relative_to_0.len());}
                 }
                 processed_scanners[scanner_id] = true;
             }
         }
         // Are we done yet?
         if processed_scanners.iter().fold(true,|prev,&b|prev&&b) {break;} // All Done!
+        if cfg!(test) {println!("{:?}",processed_scanners);}
     }
     beacons_relative_to_0.len()
 }
 
 #[aoc(day19, part2)]
-pub fn part2(input: &[Vec<Coord>]) -> usize {
-    0
+pub fn part2(input: &[Vec<Coord>]) -> isize {
+    let mut scanners = input.iter().enumerate();
+    // Start collection of known beacons with scanner 0 -- good by definition
+    let mut beacons_relative_to_0 = scanners.next().unwrap().1.into_iter()
+    .map(|ptr|*ptr).collect::<HashSet<_>>();
+    let mut processed_scanners = vec![false; input.len()];
+    processed_scanners[0] = true;
+    let mut scanner_locs = vec![Coord (0,0,0)];
+    let rots = find_unique_rotations();
+
+    // loop until all scanners are processed (see 'break' condition at bottom of loop)
+    loop {
+        let scanner_rots = input.into_iter().enumerate()
+        .filter(|(i,_)| !processed_scanners[*i])
+        .map(|(scanner_id,target_scanner)| {
+            let diff_matrix = beacons_relative_to_0.iter()
+            .map(|ref_beacon|{
+                target_scanner.iter()
+                .map(|target_beacon|{
+                    rots.iter()
+                    .map(|rot| {
+                        let diff = target_beacon.rotate(*rot)-*ref_beacon;
+                        (*rot, diff)
+                    }).collect::<Vec<_>>()
+                }).flatten().collect::<Vec<_>>()
+            }).flatten().collect::<Vec<(Coord,Coord)>>();
+            let mut unique_count = HashMap::new();
+            for (rot,diff) in diff_matrix {
+                *unique_count.entry((rot,diff)).or_default() += 1;
+            }
+            let ((best_rot, best_diff),count_of_best) = unique_count.iter()
+            .fold(((Coord (0,0,0),Coord (0,0,0)), isize::MIN),|(bestrotdiff,maxsofar), (&rot_diff,&count)|
+                if count > maxsofar {(rot_diff, count)} else {(bestrotdiff,maxsofar)}
+            );
+            if cfg!(test) { println!("For scanner #{}, found {} uniques with rotation {:?}", scanner_id, count_of_best, best_rot);}
+            (scanner_id, best_rot, best_diff, count_of_best)
+        }).collect::<Vec<_>>();
+        if cfg!(test) { println!("Scanner Rotations: {:?}", scanner_rots);}
+        for (scanner_id, rot, diff, cnt) in scanner_rots {
+            if cnt >= 12 {
+                scanner_locs.push(diff);
+                if cfg!(test) {println!("Processing Scanner ID# {} of 0 to {}", scanner_id, processed_scanners.len()-1);}
+                if cfg!(test) {println!("Before processing len {}", beacons_relative_to_0.len());}
+                for beacon in &input[scanner_id] {
+                    beacons_relative_to_0.insert(beacon.rotate(rot)-diff);
+                }
+                if cfg!(test) {println!("After processing len {}", beacons_relative_to_0.len());}
+                processed_scanners[scanner_id] = true;
+            }
+        }
+        // Are we done yet?
+        if processed_scanners.iter().fold(true,|prev,&b|prev&&b) {break;} // All Done!
+        if cfg!(test) {println!("{:?}",processed_scanners);}
+    }
+    // Find manhattan distances between scanners
+    let ans = scanner_locs.iter().map(|s1| {
+        scanner_locs.iter().map(|s2| {
+            s1.manhattan(*s2)
+        }).max().unwrap()
+    }).max().unwrap();
+
+    assert!(ans != 14868);
+    assert!(ans < 14868);
+    ans
 }
 
 fn find_unique_rotations() -> Vec<Coord> {
@@ -100,7 +165,7 @@ fn find_unique_rotations() -> Vec<Coord> {
             }
         }
     }
-    let mut v:Vec<_> = keep_only_first.iter().filter(|(result,_)|**result != original).map(|(_,rot)|*rot).collect();
+    let mut v:Vec<_> = keep_only_first.iter().map(|(_,rot)|*rot).collect();
     v.sort();
     v
 }
@@ -108,9 +173,9 @@ fn find_unique_rotations() -> Vec<Coord> {
 #[derive(Copy,Clone,PartialEq,Eq,Ord,PartialOrd,Hash,Debug)]
 pub struct Coord (isize, isize, isize);
 impl Coord {
-    pub fn manhattan(self, p2: Self) -> Self {
+    pub fn manhattan(self, p2: Self) -> isize {
         let diff = self-p2;
-        Self (diff.0.abs(), diff.1.abs(), diff.2.abs())
+        diff.0.abs() + diff.1.abs() + diff.2.abs()
     }
     pub fn rotate(self, rot: Self) -> Self {
         let Coord (mut x, mut y, mut z) = self;
@@ -189,7 +254,7 @@ mod tests {
         let p1 = Coord (1,1,1);
         let p2 = Coord (5,6,7);
         let dist = p1.manhattan(p2);
-        assert_eq!(dist,Coord (4,5,6));
+        assert_eq!(dist,15);
     }
     #[test]
     fn test_sub() {
@@ -227,17 +292,18 @@ mod tests {
         let rot = Coord (1,1,1);
         assert_eq!(p.rotate(rot),Coord (3,2,-1));
     }
-    // #[test]
-    // fn test_ex1_part1() {
-    //     let g = gen1(EX1);
-    //     let p1 = part1(&g);
-    //     assert_eq!(p1, 6);
-    // }
     #[test]
     fn test_ex2_part1() {
         let g = gen1(EX2);
         let p1 = part1(&g);
         assert_eq!(p1, 79);
+    }
+
+    #[test]
+    fn test_ex2_part2() {
+        let g = gen1(EX2);
+        let p2 = part2(&g);
+        assert_eq!(p2, 3621);
     }
 
 const EX1: &'static str =
