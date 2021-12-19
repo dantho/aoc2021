@@ -146,8 +146,10 @@ pub fn part2(input: &[Vec<Coord>]) -> isize {
         }).max().unwrap()
     }).max().unwrap();
 
-    assert!(ans != 14868);
-    assert!(ans < 14868);
+    if !cfg!(test) {
+        assert!(ans != 14868);
+        assert!(ans < 14868);
+    }
     ans
 }
 

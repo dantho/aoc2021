@@ -65,16 +65,10 @@ impl Packet {
     pub fn eval(&self) -> u64 {
         match self.typeid {
             Literal => self.value.unwrap(),
-            Sum => self.packets[0].eval()
-                  +self.packets[1].eval(),
-            Product => self.packets[0].eval()
-                      *self.packets[1].eval(),
-            Minimum => self.packets[0].eval()
-                  .min(self.packets[1].eval()
-                  .min(self.packets[2].eval())),
-            Maximum => self.packets[0].eval()
-                  .max(self.packets[1].eval()
-                  .max(self.packets[2].eval())),
+            Sum => self.packets.iter().fold(0,|sum,p|sum+p.eval()),
+            Product => self.packets.iter().fold(1,|product,p|product*p.eval()),
+            Minimum => self.packets.iter().map(|p|p.eval()).min().unwrap(),
+            Maximum => self.packets.iter().map(|p|p.eval()).max().unwrap(),
             GreaterThan => if self.packets[0].eval()
                             > self.packets[1].eval() {1} else {0},
             LessThan => if self.packets[0].eval()
@@ -276,13 +270,13 @@ mod tests {
         assert_eq!(p2, 54);
     }
     #[test]
-    fn test_min_part2() {
+    fn test_minof3_part2() {
         let g = gen1("880086C3E88112");
         let p2 = part2(&g);
         assert_eq!(p2, 7);
     }
     #[test]
-    fn test_max_part2() {
+    fn test_maxof3_part2() {
         let g = gen1("CE00C43D881120");
         let p2 = part2(&g);
         assert_eq!(p2, 9);
