@@ -49,40 +49,28 @@ pub fn part1(input: &((isize,isize),(isize,isize))) -> isize {
 pub fn part2(input: &((isize,isize),(isize,isize))) -> usize {
     // target corners
     let ((tx1,tx2),(ty1,ty2)) = *input;
-    let start = (0,0);
-    // See part 1 notes here
-    let mut step_min = isize::MAX;
-    let mut step_max = 0;
-    for vx0 in 1.. {
-        let xpos = (vx0*vx0+vx0)/2;
-        if xpos > tx1 {
-            step_min = vx0.min(step_min);  // First assignment will stick
-            step_max = vx0; // last assignment will stick
-        } 
-        if xpos > tx2 {break;}
-    }
-    assert!(step_max > 0);
-    // See part 1 notes for description of vy0_max calculation -- a single step
-    // vy0_min calculates maximum integer steps given known min step count from x, above
-    let mut total_good_shots = 0;
-    for steps in step_min..=step_max {
-        let vx0 = steps;
-        let xpos = calc_x_pos(steps,steps);
-        total_good_shots += (ty1..0).map(|vy0|{
-            let ypos=calc_y_pos(steps,vy0);
-            (xpos,ypos)
-        })
-        .filter(|(x,y)|*y>=ty1 && *y<=ty2)
-        .count();
-    }
-    total_good_shots
+    let step_vx0 = (1..100).map(|steps|{
+        (0..=tx2).filter(|vx0|in_target((tx1,tx2),calc_x_pos(steps,*vx0)))
+        .map(|vx0|(steps,vx0)).collect::<Vec<_>>()
+    }).flatten().collect::<Vec<_>>();
+    let y0max = part1(input);
+    let step_vy0 = (1..100).map(|steps|{
+        (0..=y0max).filter(|vy0|in_target((ty1,ty2),calc_y_pos(steps,*vy0)))
+        .map(|vy0|(steps,vy0)).collect::<Vec<_>>()
+    }).flatten().collect::<Vec<_>>();
+    step_vy0.len()
 }
-fn in_target(target: &((isize,isize),(isize,isize)), x: isize, y: isize) -> bool {
-    let ((tx1,tx2),(ty1,ty2)) = target;
+
+fn in_target(target: (isize,isize), xy: isize) -> bool {
+    let (t1,t2) = target;
+    xy>=t1 && xy<=t2
+}
+fn in_target_full(target: &((isize,isize),(isize,isize)), x: isize, y: isize) -> bool {
+    let &((tx1,tx2),(ty1,ty2)) = target;
     x>=tx1 && x<=tx2 && y>=ty1 && y<=ty2
 }
 fn calc_x_pos(steps: isize, vx0: isize) -> isize {
-    (0..steps).fold(0,|sum,step|sum+vx0-step)
+    (0..steps.min(vx0)).fold(0,|sum,step|sum+vx0-step)
 }
 fn calc_y_pos(steps: isize, vy0: isize) -> isize {
     (vy0..vy0+steps).fold(0,|sum,vy|sum+vy)
@@ -109,8 +97,8 @@ mod tests {
 
     #[test]
     fn test_ex1_part2() {
-        let p1 = part2(&EX1);
-        assert_eq!(p1, 112); 
+        let p2 = part2(&EX1);
+        assert_eq!(p2, 112); 
     }
 
 const EX1: ((isize, isize), (isize, isize)) = ((20,30),(-10,-5));
