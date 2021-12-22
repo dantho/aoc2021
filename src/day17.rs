@@ -1,11 +1,12 @@
 /// https://adventofcode.com/2021/day/17
 /// TER: https://adventofcode.com/2021/leaderboard/private/view/951754 
+use std::collections::HashSet;
 
 // ********************
 // *** Generator(s) ***
 // ********************/
 #[aoc_generator(day17)]
-pub fn gen1(input: &str) -> ((isize,isize),(isize,isize)) {
+pub fn gen1(_input: &str) -> ((isize,isize),(isize,isize)) {
     // Not worth writing a parser!
     // target area: x=253..280, y=-73..-46
     ((253,280),(-73,-46))
@@ -16,8 +17,7 @@ pub fn gen1(input: &str) -> ((isize,isize),(isize,isize)) {
 // *********************
 #[aoc(day17, part1)]
 pub fn part1(input: &((isize,isize),(isize,isize))) -> isize {
-    let ((tx1,tx2),(ty1,ty2)) = *input;
-    let start = (0,0);
+    let ((tx1,tx2),(ty1,_ty2)) = *input;
     // Find the initial velocity that causes the probe to reach the highest y position
     // and still eventually be within the target area after any step.
     // After far too much linear algebra and calculus, then giving up.  :(
@@ -39,8 +39,11 @@ pub fn part1(input: &((isize,isize),(isize,isize))) -> isize {
     // and it passes through (and exactly hits!) y = 0 (Physics! Math!)
     // so the highest speed that will hit the target (which means highest apex)
     // Was the last single step if target is above zero, or next single step if below
-    // Our target is below, vy = -v0+1 = max distance = ty2
+    // Our target is below, vy = -v0+1 = max distance of any target point = ty1 (lowest negative)
+    // Therefore vy0 = -ty1+1, but I used -1-ty1 for some reason? Ah.  ty1 is negative.
+    // Max speed is positive.  OK.
     let vy0 = -ty1 -1;
+    println!("Vy0: {}",vy0);
     let ymax = (1..=vy0).sum();
     ymax
 }
@@ -49,16 +52,31 @@ pub fn part1(input: &((isize,isize),(isize,isize))) -> isize {
 pub fn part2(input: &((isize,isize),(isize,isize))) -> usize {
     // target corners
     let ((tx1,tx2),(ty1,ty2)) = *input;
-    let step_vx0 = (1..100).map(|steps|{
-        (0..=tx2).filter(|vx0|in_target((tx1,tx2),calc_x_pos(steps,*vx0)))
-        .map(|vx0|(steps,vx0)).collect::<Vec<_>>()
+    let step_y_validated = (1..=75*2).map(|step| {
+        (-100..=75).filter_map(|vy0| {
+            let ypos = calc_y_pos(step,vy0);
+            if in_target((ty1,ty2),ypos) {Some((step,vy0))} else {None}
+        }).collect::<Vec<_>>()
     }).flatten().collect::<Vec<_>>();
-    let y0max = part1(input);
-    let step_vy0 = (1..100).map(|steps|{
-        (0..=y0max).filter(|vy0|in_target((ty1,ty2),calc_y_pos(steps,*vy0)))
-        .map(|vy0|(steps,vy0)).collect::<Vec<_>>()
-    }).flatten().collect::<Vec<_>>();
-    step_vy0.len()
+    let hs = step_y_validated.into_iter().map(|(step,vy0)| {
+        (0..300).filter_map(|vx0| {
+            let xpos = calc_x_pos(step,vx0);
+            let ypos = calc_y_pos(step,vy0);
+            if in_target_full(&((tx1,tx2),(ty1,ty2)),xpos,ypos) {Some((vx0,vy0))} else {None}
+        }).collect::<Vec<_>>()
+    }).flatten().collect::<HashSet<_>>();
+    let mut v = hs.iter().collect::<Vec<_>>();
+    v.sort();
+    if cfg!(test) {
+        for pair in &v {
+            println!("{:?}", pair);
+        }
+    }
+    v.len()
+    // 1360 is too high
+    // 1334 works! This was a very hacky process.  :(
+    // 1332 is wrong
+    // 1321 is too low, so is 1322 :(  I tried an off by 1 sleezo move
 }
 
 fn in_target(target: (isize,isize), xy: isize) -> bool {
@@ -73,7 +91,13 @@ fn calc_x_pos(steps: isize, vx0: isize) -> isize {
     (0..steps.min(vx0)).fold(0,|sum,step|sum+vx0-step)
 }
 fn calc_y_pos(steps: isize, vy0: isize) -> isize {
-    (vy0..vy0+steps).fold(0,|sum,vy|sum+vy)
+    let mut vy = vy0;
+    let mut ypos = 0;
+    for step in 1..=steps {
+        ypos += vy;
+        vy -= 1;
+    }
+    ypos
 }
 // *************
 // *** Tests ***
@@ -102,9 +126,5 @@ mod tests {
     }
 
 const EX1: ((isize, isize), (isize, isize)) = ((20,30),(-10,-5));
-
-const EX2: &'static str =
-r"
-";
 
 }
