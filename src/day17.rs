@@ -93,7 +93,7 @@ fn calc_x_pos(steps: isize, vx0: isize) -> isize {
 fn calc_y_pos(steps: isize, vy0: isize) -> isize {
     let mut vy = vy0;
     let mut ypos = 0;
-    for step in 1..=steps {
+    for _step in 1..=steps {
         ypos += vy;
         vy -= 1;
     }
