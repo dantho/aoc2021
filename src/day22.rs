@@ -2,12 +2,23 @@
 /// TER: https://adventofcode.com/2021/leaderboard/private/view/951754 
 use std::ops::Sub;
 
-#[derive(Copy,Clone)]
+#[derive(Copy,Clone,Debug,PartialEq,Eq)]
 pub struct Cuboid ((isize, isize, isize), (isize, isize, isize));
 impl Cuboid {
     fn is_cuboid(&self) -> bool {
         let Cuboid ((x0,y0,z0),(x1,y1,z1)) = self;
-        x1>x0 && y1>y0 && z1>z0
+        x1>=x0 && y1>=y0 && z1>=z0
+    }
+    fn bounded_by(self, other:Self) -> Option<Self> {
+        let Cuboid ((x0,y0,z0),(x1,y1,z1)) = self;
+        let Cuboid ((xx0,yy0,zz0),(xx1,yy1,zz1)) = other;
+        let new = Cuboid ((x0.max(xx0),y0.max(yy0),z0.max(zz0)),
+            (x1.min(xx1),y1.min(yy1),z1.min(zz1)));
+        if new.is_cuboid() {Some(new)} else {None}
+    }
+    fn size(self) -> usize {
+        let Cuboid ((x0,y0,z0),(x1,y1,z1)) = self;
+        ((x1-x0+1)*(y1-y0+1)*(z1-z0+1)) as usize
     }
 }
 impl Sub for Cuboid {
@@ -22,7 +33,10 @@ impl Sub for Cuboid {
             Cuboid ((x0,yy1+1,zz0),(x1,y1,zz1)),
             Cuboid ((x0,yy0,zz0),(xx0-1,yy1,zz1)),
             Cuboid ((xx1+1,yy0,zz0),(x1,yy1,zz1)),
-        ].into_iter().filter(|c|c.is_cuboid()).collect::<Vec<_>>()
+        ].into_iter()
+        .filter(|c|c.is_cuboid())
+        .filter_map(|c|c.bounded_by(self))
+        .collect::<Vec<_>>()
     }
 }
 
@@ -66,12 +80,27 @@ pub fn part1(input: &[(bool,Cuboid)]) -> usize {
     // All other cases are a simple subsets of this worst case.
     // Note that the slicing and dicing happens regardless of the on/off state of either cuboid.
     // Note that the old cuboid(s) are diced, new cuboids "win" -- remain whole until diced by a later cuboid.
-    0
-
+    let rebooted = input.iter().map(|ptr|*ptr)
+    .filter(|(_,c)|c.0.0 <= 50 && c.0.0 >= -50)
+    .fold(Vec::new(),|steps: Vec<(bool,Cuboid)>, (new_on_off, new_c):(bool,Cuboid)| {
+        let mut updated = steps.into_iter()
+        .map(|(on_off,c):(bool,Cuboid)|{
+            (c-new_c).into_iter().map(move |c|(on_off,c))
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+        updated.push((new_on_off,new_c));
+        updated
+    });
+    rebooted.into_iter()
+    .filter_map(|(on_off,c)|if on_off {Some(c.size())} else {None})
+    .sum()
+    // 1211172281877240 is too high
+    // 11841109137665 is too high
 }
 
 #[aoc(day22, part2)]
-pub fn part2(input: &[(bool,Cuboid)]) -> usize {
+pub fn part2(_input: &[(bool,Cuboid)]) -> usize {
     0
 }
 
@@ -109,14 +138,44 @@ mod tests {
         let bigger = Cuboid ((0,0,0),(3,3,3));
         let smaller = Cuboid ((1,1,1),(2,2,2));
         let diff = bigger-smaller;
-        assert_eq!(diff.len(), 7);
+        assert_eq!(diff.len(), 6);
+        let bigger = Cuboid ((0,0,0),(1,1,1));
+        let smaller = Cuboid ((1,1,1),(2,2,2));
+        let diff = bigger-smaller;
+        assert_eq!(diff.len(), 3);
+        let bigger = Cuboid ((0,0,0),(1,1,1));
+        let smaller = Cuboid ((1,2,2),(2,2,2));
+        let diff = bigger-smaller;
+        assert_eq!(diff, [bigger]);
+        let bigger = Cuboid ((0,0,0),(0,0,0));
+        let smaller = Cuboid ((2,2,2),(2,2,2));
+        let diff = bigger-smaller;
+        assert_eq!(diff, [bigger]);
     }
 
     #[test]
     fn test_is_cuboid() {
-        assert!(true, Cuboid ((0,0,0),(0,0,0)).is_cuboid());
-        assert!(true, Cuboid ((0,0,0),(1,1,1)).is_cuboid());
-        assert!(false, Cuboid ((0,0,0),(-1,0,0)).is_cuboid());
+        assert_eq!(true, Cuboid ((0,0,0),(0,0,0)).is_cuboid());
+        assert_eq!(true, Cuboid ((0,0,0),(1,1,1)).is_cuboid());
+        assert_eq!(true, Cuboid ((1,2,3),(2,3,4)).is_cuboid());
+        assert_eq!(false, Cuboid ((0,0,0),(-1,0,0)).is_cuboid());
+        assert_eq!(false, Cuboid ((0,1,0),(0,0,0)).is_cuboid());
+        assert_eq!(false, Cuboid ((-2,0,0),(-3,0,0)).is_cuboid());
+        assert_eq!(false, Cuboid ((1,1,1),(0,0,0)).is_cuboid());
+        assert_eq!(true, Cuboid ((isize::MIN,isize::MIN,isize::MIN),(isize::MAX,isize::MAX,isize::MAX)).is_cuboid());
+    }
+
+    #[test]
+    fn test_cuboid_size() {
+        assert_eq!(1, Cuboid ((0,0,0),(0,0,0)).size());
+        assert_eq!(2, Cuboid ((0,0,0),(0,0,1)).size());
+        assert_eq!(4, Cuboid ((0,0,0),(0,1,1)).size());
+        assert_eq!(8, Cuboid ((0,0,0),(1,1,1)).size());
+        assert_eq!(100, Cuboid ((0,0,0),(0,9,9)).size());
+        assert_eq!(1_000_000, Cuboid ((0,0,0),(99,99,99)).size());
+        assert_eq!(1_000_000, Cuboid ((-10,-10,-10),(89,89,89)).size());
+        assert_eq!(1_000_000, Cuboid ((-10,-20,-30),(89,79,69)).size());
+        assert_eq!(1_030_301, Cuboid ((-50,-50,-50),(50,50,50)).size());
     }
 
 const EX1: &'static str =
