@@ -20,6 +20,11 @@ impl Cuboid {
         let Cuboid ((x0,y0,z0),(x1,y1,z1)) = self;
         ((x1-x0+1)*(y1-y0+1)*(z1-z0+1)) as usize
     }
+    fn overlaps(&self, other:&Self) -> bool {
+        let Cuboid ((x0,y0,z0),(x1,y1,z1)) = self;
+        let Cuboid ((xx0,yy0,zz0),(xx1,yy1,zz1)) = other;
+        !(x0 > xx1 || x1 < xx0 || y0 > yy1 || y1 < yy0 || z0 > zz1 || z1 < zz0) 
+    }
 }
 impl Sub for Cuboid {
     type Output = Vec<Self>;
@@ -46,6 +51,7 @@ impl Sub for Cuboid {
 #[aoc_generator(day22)]
 pub fn gen1(input: &str) -> Vec<(bool,Cuboid)> {
     input.lines()
+    .map(|line|line.trim())
     .filter(|l|l.len()!=0)
     .map(|line| {
         let mut halves = line.split(" ");
@@ -82,18 +88,25 @@ pub fn part1(input: &[(bool,Cuboid)]) -> usize {
     // Note that the old cuboid(s) are diced, new cuboids "win" -- remain whole until diced by a later cuboid.
     let rebooted = input.iter().map(|ptr|*ptr)
     .filter(|(_,c)|c.0.0 <= 50 && c.0.0 >= -50)
-    .fold(Vec::new(),|steps: Vec<(bool,Cuboid)>, (new_on_off, new_c):(bool,Cuboid)| {
+    .fold(Vec::new(),|steps: Vec<(bool,Cuboid)>, (new_is_on, new_c):(bool,Cuboid)| {
         let mut updated = steps.into_iter()
-        .map(|(on_off,c):(bool,Cuboid)|{
-            (c-new_c).into_iter().map(move |c|(on_off,c))
+        .map(|(is_on,c):(bool,Cuboid)|{
+            (c-new_c).into_iter().map(move |c|(is_on,c))
         })
         .flatten()
         .collect::<Vec<_>>();
-        updated.push((new_on_off,new_c));
+        updated.push((new_is_on,new_c));
         updated
     });
+    for (_,outer) in &rebooted {
+        for (_,inner) in &rebooted {
+            if outer != inner && outer.overlaps(inner) {
+                println!("Outer: {:?} overlaps Inner: {:?}", outer, inner);
+            }
+        }
+    }
     rebooted.into_iter()
-    .filter_map(|(on_off,c)|if on_off {Some(c.size())} else {None})
+    .filter_map(|(is_on,c)|if is_on {Some(c.size())} else {None})
     .sum()
     // 1211172281877240 is too high
     // 11841109137665 is too high
@@ -178,14 +191,157 @@ mod tests {
         assert_eq!(1_030_301, Cuboid ((-50,-50,-50),(50,50,50)).size());
     }
 
-const EX1: &'static str =
-r"on x=10..12,y=10..12,z=10..12
+    #[test]
+    fn test_overlap() {
+        // line
+        let line1 = Cuboid ((0,0,0),(10,0,0)); // a line
+        let line1_copy = line1.clone();
+        let line1_non_ov1 = Cuboid ((11,0,0),(12,0,0)); // another line
+        let line1_non_ov2 = Cuboid ((-10,0,0),(-1,0,0));
+        assert!(line1.overlaps(&line1_copy));
+        assert!(!line1.overlaps(&line1_non_ov1));
+        assert!(!line1.overlaps(&line1_non_ov2));
+        let line1_touch1 = Cuboid ((10,0,0),(12,0,0));
+        let line1_touch2 = Cuboid ((-10,0,0),(0,0,0));
+        assert!(line1.overlaps(&line1_touch1));
+        assert!(line1.overlaps(&line1_touch2));
+        let line1_intersect1 = Cuboid ((1,-5,0),(1,5,0));
+        let line1_intersect2 = Cuboid ((2, 0,-5),(2,0,5));
+        assert!(line1.overlaps(&line1_intersect1));
+        assert!(line1.overlaps(&line1_intersect2));
+        // cube
+        let cube1 = Cuboid ((0,0,0),(10,10,10));
+        let cube1_copy = cube1.clone();
+        let cube1_non_ov1 = Cuboid ((11,11,11),(12,12,12));
+        let cube1_non_ov2 = Cuboid ((-10,-10,-10),(-1,-1,-1));
+        assert!(cube1.overlaps(&cube1_copy));
+        assert!(!cube1.overlaps(&cube1_non_ov1));
+        assert!(!cube1.overlaps(&cube1_non_ov2));
+        let cube1_touch1 = Cuboid ((10,10,10),(12,12,12));
+        let cube1_touch2 = Cuboid ((-10,-10,-10),(0,0,0));
+        assert!(cube1.overlaps(&cube1_touch1));
+        assert!(cube1.overlaps(&cube1_touch2));
+        // point
+        let point_inside = Cuboid ((5,5,5),(5,5,5));
+        let point_outside = Cuboid ((11,11,11),(11,11,11));
+        assert!(point_inside.overlaps(&point_inside));
+        assert!(!point_inside.overlaps(&point_outside));
+        assert!(cube1.overlaps(&point_inside));
+        assert!(!cube1.overlaps(&point_outside));
+    }
+
+    #[test]
+    fn test_part1_2() {
+        let g = gen1(r"
+        on x=10..12,y=10..12,z=10..12
+        on x=11..13,y=11..13,z=11..13
+        off x=9..11,y=9..11,z=9..11
+        on x=10..10,y=10..10,z=10..10
+        on x=100..100,y=100..100,z=100..100");
+        let p1 = part1(&g);
+        assert_eq!(p1, 39);
+    }
+
+    #[test]
+    fn test_part1_3() {
+        let g = gen1(r"
+        on x=4..5,y=4..5,z=4..5
+        on x=6..7,y=6..7,z=6..7");
+        let p1 = part1(&g);
+        assert_eq!(p1, 8+8);
+        
+        let g = gen1(r"
+        on x=4..5,y=4..5,z=4..5
+        on x=5..6,y=5..6,z=5..6");
+        let p1 = part1(&g);
+        assert_eq!(p1, 8+8-1);
+
+        let g = gen1(r"
+        on x=4..5,y=4..5,z=4..5
+        on x=5..6,y=5..6,z=5..6");
+        let p1 = part1(&g);
+        assert_eq!(p1, 8+8-1);
+
+        let g = gen1(r"
+        on x=1..10,y=1..10,z=1..10
+        on x=5..5,y=8..10,z=6..15");
+        let p1 = part1(&g);
+        // A cube 10x10x10 with a plane 1x3x10, but overlapping 1x3x5
+        assert_eq!(p1, 1000+15);
+
+        let g = gen1(r"
+        on x=1..10,y=1..10,z=1..10
+        on x=5..5,y=7..9,z=6..15");
+        let p1 = part1(&g);
+        // A cube 10x10x10 with a plane 1x3x10, but overlapping 1x3x5
+        assert_eq!(p1, 1000+15);
+
+        let g = gen1(r"
+        on x=1..10,y=1..10,z=1..10
+        off x=5..5,y=7..9,z=6..15");
+        let p1 = part1(&g);
+        // A cube 10x10x10 with a plane 1x3x10, but SUBTRACTING overlap of 1x3x5
+        assert_eq!(p1, 1000-15);
+
+        let g = gen1(r"
+        off x=1..10,y=1..10,z=1..10
+        off x=5..5,y=7..9,z=6..15");
+        let p1 = part1(&g);
+        // A cube 10x10x10 with a plane 1x3x10, but BOTH ARE OFF
+        assert_eq!(p1, 0);
+
+        let g = gen1(r"
+        on x=5..5,y=7..9,z=6..15
+        on x=1..10,y=1..10,z=1..10
+        ");
+        let p1 = part1(&g);
+        // A cube 10x10x10 with a plane 1x3x10, reverse order
+        assert_eq!(p1, 1000+15);
+
+        let g = gen1(r"
+        on x=5..5,y=7..9,z=6..15
+        off x=1..10,y=1..10,z=1..10
+        ");
+        let p1 = part1(&g);
+        // A cube 10x10x10 with a plane 1x3x10, reverse but SUBTRACTING big cube
+        assert_eq!(p1, 15);
+
+        let g = gen1(r"
+        on x=1..10,y=1..10,z=1..10
+        off x=1..1,y=1..1,z=1..1
+        off x=1..1,y=1..1,z=10..10
+        off x=1..1,y=10..10,z=1..1
+        off x=10..10,y=1..1,z=1..1
+        off x=1..1,y=10..10,z=10..10
+        off x=10..10,y=10..10,z=1..1
+        off x=10..10,y=1..1,z=10..10
+        off x=10..10,y=10..10,z=10..10
+        off x=5..5,y=5..5,z=5..5
+        ");
+        let p1 = part1(&g);
+        // A cube 10x10x10 SUBTRACTING points in corners and one in center
+        assert_eq!(p1, 1000-9);
+
+        let g = gen1(r"
+        on x=1..10,y=1..10,z=1..10
+        on x=50..50,y=50..50,z=50..50
+        on x=51..51,y=51..51,z=51..51
+        on x=-50..-50,y=-50..-50,z=-50..-50
+        on x=-51..-51,y=-51..-51,z=-51..-51
+        ");
+        let p1 = part1(&g);
+        // A cube 10x10x10 plus 2 barely in-bounds and 2 out-of-bounds points
+        assert_eq!(p1, 1000+2);
+}
+
+const EX1: &'static str = r"
+on x=10..12,y=10..12,z=10..12
 on x=11..13,y=11..13,z=11..13
 off x=9..11,y=9..11,z=9..11
 on x=10..10,y=10..10,z=10..10";
 
-const EX2: &'static str =
-r"on x=-20..26,y=-36..17,z=-47..7
+const EX2: &'static str = r"
+on x=-20..26,y=-36..17,z=-47..7
 on x=-20..33,y=-21..23,z=-26..28
 on x=-22..28,y=-29..23,z=-38..16
 on x=-46..7,y=-6..46,z=-50..-1
