@@ -45,11 +45,11 @@ if input == z%26 + uniq1 {
 }
 
 if uniq1 > 0
-    z = input + uniq2 + z*26 // increase order by 1, add a new remainder
+    z = input + uniq2 + z*26 // increase order by 1, add a new remainder (input + uniq2)
 else if input == z%26 + uniq1 
     z = z/26 // Assuming % -> positive only // reduce order by 1, clear remainder
 else
-    z = input + uniq2 + z/26*26  // clear old remainder, add a new remainder
+    z = input + uniq2 + z/26*26  // clear old remainder, add a new remainder (input + uniq2)
 }
 
 Given
