@@ -13,14 +13,14 @@ pub fn gen1(_input: &str) -> () {
 // *********************
 #[aoc(day21, part1)]
 pub fn part1(_input: &()) -> usize {
-    let my_puzzle_input = (10,7);
+    let my_puzzle_input = (7,3);
     deterministic_play (100,my_puzzle_input)
     // 906093 is the answer!
 }
 
 #[aoc(day21, part2)]
 pub fn part2(_input: &()) -> usize {
-    let starting_positions = (10,7);
+    let starting_positions = (7,3);
     let win_count = dirac_play(starting_positions);
     let ans = win_count[0].max(win_count[1]);
     ans
