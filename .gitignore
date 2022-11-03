@@ -2,3 +2,5 @@
 **/*.rs.bk
 .idea
 visualizations/~$day23.xlsx
+# See https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.html
+cargo.lock
