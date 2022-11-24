@@ -55,7 +55,7 @@ pub fn part1(input: &[Amphipod]) -> usize {
 pub fn part2(input: &[Amphipod]) -> usize {
     let mut gb = GameBoard::new(input);
 
-    let animate = false; // animate or debug
+    let animate = true; // animate or debug
 
     if animate {
         execute!(stdout(),Hide,Clear(ClearType::All),MoveTo(0,0)).unwrap()
