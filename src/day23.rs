@@ -5,8 +5,6 @@ use self::GameSpace::*;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::stdout;
-use std::time::Duration;
-use std::thread::sleep;
 use crossterm::style::Stylize;
 use crossterm::{
     execute,
@@ -17,8 +15,7 @@ use crossterm::{
 // ********************
 // *** Generator(s) ***
 // ********************/
-#[aoc_generator(day23, part1)]
-pub fn gen1(input: &str) -> Vec<Amphipod> {
+pub fn gen(input: &str) -> Vec<Amphipod> {
     input.lines().skip(2).take(2)
     .map(|line|line[3..10].split("#")
         .map(|amphi| match amphi {
@@ -30,9 +27,19 @@ pub fn gen1(input: &str) -> Vec<Amphipod> {
         })).flatten().collect::<Vec<_>>()
 }
 
+#[aoc_generator(day23, part1)]
+pub fn gen1(input: &str) -> Vec<Amphipod> {
+    let orig = gen(input);
+    let insert2rows = vec![A,B,C,D,A,B,C,D];
+    orig.iter()
+    .chain(insert2rows.iter())
+    .map(|ptr|*ptr)
+    .collect::<Vec<_>>()
+}
+
 #[aoc_generator(day23, part2)]
 pub fn gen2(input: &str) -> Vec<Amphipod> {
-    let orig = gen1(input);
+    let orig = gen(input);
     let insert2rows = vec![D,C,B,A,D,B,A,C];
     orig.iter()
     .take(4)
@@ -47,8 +54,7 @@ pub fn gen2(input: &str) -> Vec<Amphipod> {
 // *********************
 #[aoc(day23, part1)]
 pub fn part1(input: &[Amphipod]) -> usize {
-    assert_eq!(input.len(), 8);
-    0
+    part2(input)
 }
 
 #[aoc(day23, part2)]
