@@ -5,7 +5,8 @@ use self::Op::*;
 use std::convert::From;
 
 /*
-The ALU is a four-dimensional processing unit: it has integer variables w, x, y, and z. These variables all start with the value 0. The ALU also supports six instructions:
+The ALU is a four-dimensional processing unit: it has integer variables w, x, y, and z.
+These variables all start with the value 0. The ALU also supports six instructions:
 
     inp a - Read an input value and write it to variable a.
     add a b - Add the value of a to the value of b, then store the result in variable a.
