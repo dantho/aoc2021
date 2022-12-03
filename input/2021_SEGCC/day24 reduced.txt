@@ -1,0 +1,42 @@
+1
+add x 14
+add y 12
+1
+add x 13
+add y 6
+1
+add x 12
+add y 4
+1
+add x 14
+add y 5
+1
+add x 13
+add y 0
+26
+add x -7
+add y 4
+26
+add x -13
+add y 15
+1
+add x 10
+add y 14
+26
+add x -7
+add y 6
+1
+add x 11
+add y 14
+26
+add x -9
+add y 8
+26
+add x -2
+add y 5
+26
+add x -9
+add y 14
+26
+add x -14
+add y 4

@@ -29,14 +29,28 @@ pub fn gen1(input: &str) -> String {
 #[aoc(day24, part1)]
 pub fn part1(input: &str) -> isize {
     let mut alu = ALU::load_program(&input);  //..436 is 3, ..873 is 6 inputs
-    // for n14 in 111..=999 { // 99_999_999_999_999
-    for n14 in 99_999_999_969_999..=99_999_999_969_999 { // 99_999_999_999_999
-        let digits = make_digits(n14);
+    let mut n14_maxvalid: isize = 0;
+    for n14 in [34_198_111_816_311, 99_799_212_949_967].iter() { 
+        let digits = make_digits(*n14);
         if digits.contains(&0) {continue};
         let regs = alu.eval(&digits);
         alu.reboot();
-        {println!("{} yields {:?}",n14, regs)};
+        if ((n14+1)/1_000_000)*1_000_000==n14+1 {println!("{}",n14);}
+        if regs[3]==0 {
+            println!("{} yields {:?}",n14, regs);
+            n14_maxvalid = *n14;
+            // break;
+        }
+        // #[cfg(not(test))]
+        // assert_ne!(regs[3],256602127);
+        // #[cfg(not(test))]
+        // assert!(regs[3]>256602127);
     }
+    n14_maxvalid
+}
+
+#[aoc(day24, part2)]
+pub fn part2(_input: &str) -> isize {
     0
 }
 
@@ -48,11 +62,6 @@ fn make_digits(mut n:isize) -> Vec<isize> {
     }
     digits.reverse();
     digits
-}
-
-#[aoc(day24, part2)]
-pub fn part2(_input: &str) -> isize {
-    0
 }
 
 #[derive(Copy,Clone)]
