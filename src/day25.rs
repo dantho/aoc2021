@@ -92,8 +92,12 @@ pub fn part1(input: &[Vec<Cuc>]) -> usize {
         }
         // Show movement
         if movement_occurred {
-            print_sea_cucs(&input)
-        };
+            print_sea_cucs(&input);
+            use std::{thread, time};
+            let wait_ms = 10;
+            let wait_dur = time::Duration::from_millis(wait_ms);
+            thread::sleep(wait_dur);
+        }
         any_movement_occurred = any_movement_occurred || movement_occurred;
         step_count += 1;
         if !any_movement_occurred {break step_count}
